@@ -5,7 +5,7 @@ My solutions for Advent of Code 2023. This year I am learning Zig. I might also 
 | Day | Nickname  | Zig | OCaml |
 | --- | --------- | --- | ----- |
 | 1   | Trebuchet | ✔️  |       |
-| 2   |           |     |       |
+| 2   | Cube Game | ✔️  |       |
 | 3   |           |     |       |
 | 4   |           |     |       |
 | 5   |           |     |       |
