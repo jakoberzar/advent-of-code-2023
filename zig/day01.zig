@@ -81,37 +81,37 @@ fn solve(input: [:0]const u8, allow_digit_strings: bool) !u64 {
     return sum;
 }
 
-pub fn solve_star1(input: [:0]const u8) !u64 {
+pub fn solveStar1(input: [:0]const u8) !u64 {
     return solve(input, false);
 }
 
-pub fn solve_star2(input: [:0]const u8) !u64 {
+pub fn solveStar2(input: [:0]const u8) !u64 {
     return solve(input, true);
 }
 
 pub fn main() !void {
-    const result1 = try solve_star1(full);
+    const result1 = try solveStar1(full);
     std.debug.print("Star 1 result is {}\n", .{result1});
-    const result2 = try solve_star2(full);
+    const result2 = try solveStar2(full);
     std.debug.print("Star 2 result is {}\n", .{result2});
 }
 
 test "star 1 simple" {
-    const result = try solve_star1(simple);
+    const result = try solveStar1(simple);
     try expect(result == 142);
 }
 
 test "star 1 full" {
-    const result = try solve_star1(full);
+    const result = try solveStar1(full);
     try expect(result == 55971);
 }
 
 test "star 2 simple" {
-    const result = try solve_star2(simple2);
+    const result = try solveStar2(simple2);
     try expect(result == 281);
 }
 
 test "star 2 full" {
-    const result = try solve_star2(full);
+    const result = try solveStar2(full);
     try expect(result == 54719);
 }
