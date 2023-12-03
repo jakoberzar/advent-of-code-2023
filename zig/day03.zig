@@ -1,7 +1,6 @@
 const std = @import("std");
 const expect = std.testing.expect;
 const isDigit = std.ascii.isDigit;
-const ArrayList = std.ArrayList;
 const print = std.debug.print;
 
 const utils = @import("utils.zig");
@@ -9,10 +8,9 @@ const utils = @import("utils.zig");
 const day = "day-03";
 const simple = @embedFile("./inputs/" ++ day ++ "/simple.txt");
 const full = @embedFile("./inputs/" ++ day ++ "/full.txt");
-const grid_size_simple = 10;
-const grid_size_full = 140;
+const grid_size_simple = std.mem.indexOfScalar(u8, simple, '\n').?;
+const grid_size_full = std.mem.indexOfScalar(u8, full, '\n').?;
 const max_grid_size = @max(grid_size_full, grid_size_simple);
-const max_grid_size_2d = max_grid_size * max_grid_size;
 const Grid = [max_grid_size][max_grid_size]u8;
 var stored_grid: Grid = [_][max_grid_size]u8{[_]u8{0} ** max_grid_size} ** max_grid_size; // Copy of input but without the newlines.
 
@@ -25,8 +23,8 @@ const input_full = InputData{ .data = full, .row_size = grid_size_full };
 
 // We just need a fixed array. A copy of input will suffice.
 fn parseInput(input: InputData, out_grid: *Grid) !void {
-    const trimmed_input = std.mem.trimRight(u8, input.data, &[_]u8{0});
     var row: usize = 0;
+    const trimmed_input = std.mem.trimRight(u8, input.data, &[_]u8{0});
     var input_window = std.mem.window(u8, trimmed_input, input.row_size, input.row_size + 1);
     var current_input_window = input_window.next();
     while (current_input_window != null and row < out_grid.len) {
@@ -39,10 +37,8 @@ fn parseInput(input: InputData, out_grid: *Grid) !void {
     }
 }
 
-fn sumEnginePartsAround(grid: *Grid, row_size: usize, symbol_row: usize, symbol_col: usize) u64 {
-    _ = row_size;
+fn sumEnginePartsAround(grid: *Grid, symbol_row: usize, symbol_col: usize) u64 {
     var sum: u64 = 0;
-
     var row: usize = symbol_row - 1;
     while (row <= symbol_row + 1) : (row += 1) {
         var col: usize = symbol_col - 1;
@@ -73,25 +69,33 @@ fn isSymbol(char: u8) bool {
     return true;
 }
 
-pub fn solveStar1(grid: *Grid, row_size: usize) u64 {
+const SumGridPredicate = fn (char: u8) bool;
+const SumGridMap = fn (grid: *Grid, row: usize, col: usize) u64;
+fn sumInnerGridFieldIf(grid: *Grid, row_size: usize, comptime predicate: SumGridPredicate, comptime map: SumGridMap) u64 {
     var sum: u64 = 0;
     var row: usize = 1;
     while (row < row_size - 1) : (row += 1) {
         var col: usize = 1;
         while (col < row_size - 1) : (col += 1) {
-            if (isSymbol(grid[row][col])) {
-                sum += sumEnginePartsAround(grid, row_size, row, col);
+            if (predicate(grid[row][col])) {
+                sum += map(grid, row, col);
             }
         }
     }
     return sum;
 }
 
-fn getGearRatio(grid: *Grid, row_size: usize, symbol_row: usize, symbol_col: usize) u64 {
-    _ = row_size;
+pub fn solveStar1(grid: *Grid, row_size: usize) u64 {
+    return sumInnerGridFieldIf(grid, row_size, isSymbol, sumEnginePartsAround);
+}
+
+fn isAsterrisk(char: u8) bool {
+    return char == '*';
+}
+
+fn getGearRatio(grid: *Grid, symbol_row: usize, symbol_col: usize) u64 {
     var product: u64 = 1;
     var parts_amount: usize = 0;
-
     var row: usize = symbol_row - 1;
     while (row <= symbol_row + 1) : (row += 1) {
         var col: usize = symbol_col - 1;
@@ -119,17 +123,7 @@ fn getGearRatio(grid: *Grid, row_size: usize, symbol_row: usize, symbol_col: usi
 }
 
 pub fn solveStar2(grid: *Grid, row_size: usize) u64 {
-    var sum: u64 = 0;
-    var row: usize = 1;
-    while (row < row_size - 1) : (row += 1) {
-        var col: usize = 1;
-        while (col < row_size - 1) : (col += 1) {
-            if (grid[row][col] == '*') {
-                sum += getGearRatio(grid, row_size, row, col);
-            }
-        }
-    }
-    return sum;
+    return sumInnerGridFieldIf(grid, row_size, isAsterrisk, getGearRatio);
 }
 
 pub fn main() !void {
