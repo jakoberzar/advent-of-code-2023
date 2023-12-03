@@ -4,6 +4,8 @@ const isDigit = std.ascii.isDigit;
 const ArrayList = std.ArrayList;
 const print = std.debug.print;
 
+const utils = @import("utils.zig");
+
 const day = "day-03";
 const simple = @embedFile("./inputs/" ++ day ++ "/simple.txt");
 const full = @embedFile("./inputs/" ++ day ++ "/full.txt");
@@ -20,48 +22,6 @@ const InputData = struct {
 };
 const input_simple = InputData{ .data = simple, .row_size = grid_size_simple };
 const input_full = InputData{ .data = full, .row_size = grid_size_full };
-
-// TODO: Move to common lib
-fn ParseResult(comptime T: type) type {
-    return struct {
-        value: T,
-        consumed: usize,
-    };
-}
-
-// TODO: Move to common lib
-fn charToDigit(char: u8) u8 {
-    return char - '0';
-}
-
-// TODO: Move to common lib
-fn parseNumberAtStart(comptime T: type, s: []const u8) !ParseResult(T) {
-    if (s.len == 0) return error.NoInputWhileParsingNumber;
-    if (!isDigit(s[0])) return error.NoNumberWhileParsingNumber;
-    var parsed: T = charToDigit(s[0]);
-    var idx: usize = 1;
-    while (idx < s.len and isDigit(s[idx])) : (idx += 1) {
-        parsed *= 10;
-        parsed += charToDigit(s[idx]);
-    }
-    return .{
-        .value = parsed,
-        .consumed = idx,
-    };
-}
-
-// TODO: Move to common lib
-test "parse number at start" {
-    const parsed = try parseNumberAtStart(u32, "25 red");
-    try expect(parsed.value == 25);
-    try expect(parsed.consumed == 2);
-}
-
-test "parse number at start grid" {
-    const parsed = try parseNumberAtStart(u32, "467...");
-    try expect(parsed.value == 467);
-    try expect(parsed.consumed == 3);
-}
 
 // We just need a fixed array. A copy of input will suffice.
 fn parseInput(input: InputData, out_grid: *Grid) !void {
@@ -93,7 +53,7 @@ fn sumEnginePartsAround(grid: *Grid, row_size: usize, symbol_row: usize, symbol_
                 while (digit_start > 0 and isDigit(grid[row][digit_start])) : (digit_start -= 1) {}
                 if (!isDigit(grid[row][digit_start])) digit_start += 1;
                 // Get the number
-                const parsed_digit_result = parseNumberAtStart(u32, grid[row][digit_start..]) catch unreachable;
+                const parsed_digit_result = utils.parseNumberAtStart(u32, grid[row][digit_start..]) catch unreachable;
                 sum += parsed_digit_result.value;
                 // Delete the number to prevent it from happening twice
                 var overwrite_col = digit_start;
@@ -146,7 +106,7 @@ fn getGearRatio(grid: *Grid, row_size: usize, symbol_row: usize, symbol_col: usi
                 while (digit_start > 0 and isDigit(grid[row][digit_start])) : (digit_start -= 1) {}
                 if (!isDigit(grid[row][digit_start])) digit_start += 1;
                 // Get the number
-                const parsed_digit_result = parseNumberAtStart(u32, grid[row][digit_start..]) catch unreachable;
+                const parsed_digit_result = utils.parseNumberAtStart(u32, grid[row][digit_start..]) catch unreachable;
                 parts_amount += 1;
                 product *= parsed_digit_result.value;
                 // Skip the number to prevent counting it twice

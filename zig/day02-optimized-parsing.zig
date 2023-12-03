@@ -2,42 +2,13 @@ const std = @import("std");
 const expect = std.testing.expect;
 const isDigit = std.ascii.isDigit;
 
+const utils = @import("utils.zig");
+
 const day = "day-02";
 const simple = @embedFile("./inputs/" ++ day ++ "/simple.txt");
 const full = @embedFile("./inputs/" ++ day ++ "/full.txt");
 
 const CubeCount = u32;
-
-fn charToDigit(char: u8) u8 {
-    return char - '0';
-}
-
-const ParseNumberResult = struct {
-    number: CubeCount,
-    consumed: usize,
-};
-
-fn parseNumberAtStart(s: []const u8) !ParseNumberResult {
-    if (s.len == 0) return error.NoInputWhileParsingNumber;
-    if (!isDigit(s[0])) return error.NoNumberWhileParsingNumber;
-    var parsed: CubeCount = 0;
-    var idx: usize = 0;
-    while (idx < s.len and isDigit(s[idx])) : (idx += 1) {
-        if (parsed != 0) parsed *= 10;
-        parsed += charToDigit(s[idx]);
-    }
-    return .{
-        .number = parsed,
-        .consumed = idx,
-    };
-}
-
-test "parse number at start" {
-    const parsed = try parseNumberAtStart("25 red");
-    try expect(parsed.number == 25);
-    try expect(parsed.consumed == 2);
-}
-
 const CubeSet = struct {
     red: CubeCount = 0,
     green: CubeCount = 0,
@@ -58,20 +29,20 @@ fn parseDraw(draw_text: []const u8) !CubeSet {
         while (char_idx < draw_text.len and !isDigit(draw_text[char_idx])) : (char_idx += 1) {}
 
         const cube_string = draw_text[char_idx..];
-        const number_parsed = try parseNumberAtStart(cube_string);
+        const number_parsed = try utils.parseNumberAtStart(CubeCount, cube_string);
         char_idx += number_parsed.consumed;
         char_idx += 1; // Skip space after number
         switch (draw_text[char_idx]) {
             'r' => {
-                draw.red = number_parsed.number;
+                draw.red = number_parsed.value;
                 char_idx += 3; // Skip "red"
             },
             'g' => {
-                draw.green = number_parsed.number;
+                draw.green = number_parsed.value;
                 char_idx += 5; // Skip "green"
             },
             'b' => {
-                draw.blue = number_parsed.number;
+                draw.blue = number_parsed.value;
                 char_idx += 4; // Skip "blue"
             },
             else => return error.InvalidCubeType,

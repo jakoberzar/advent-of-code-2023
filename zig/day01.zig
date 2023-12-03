@@ -6,13 +6,9 @@ const simple = @embedFile("./inputs/" ++ day ++ "/simple.txt");
 const simple2 = @embedFile("./inputs/" ++ day ++ "/simple2.txt");
 const full = @embedFile("./inputs/" ++ day ++ "/full.txt");
 
-fn charToDigit(char: u8) u8 {
-    return char - '0';
-}
-
 fn tryDecodeDigit(s: []const u8, allow_strings: bool) ?u32 {
     if (std.ascii.isDigit(s[0])) {
-        return charToDigit(s[0]);
+        return std.fmt.charToDigit(s[0], 10) catch unreachable;
     }
 
     if (!allow_strings or s.len < 3) {

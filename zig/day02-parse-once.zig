@@ -3,6 +3,8 @@ const expect = std.testing.expect;
 const isDigit = std.ascii.isDigit;
 const ArrayList = std.ArrayList;
 
+const utils = @import("utils.zig");
+
 const day = "day-02";
 const simple = @embedFile("./inputs/" ++ day ++ "/simple.txt");
 const full = @embedFile("./inputs/" ++ day ++ "/full.txt");
@@ -25,45 +27,13 @@ const Game = struct {
     }
 };
 
-fn ParseResult(comptime T: type) type {
-    return struct {
-        value: T,
-        consumed: usize,
-    };
-}
-
 const max_draw = CubeSet{
     .red = 12,
     .green = 13,
     .blue = 14,
 };
 
-fn charToDigit(char: u8) u8 {
-    return char - '0';
-}
-
-fn parseNumberAtStart(s: []const u8) !ParseResult(CubeCount) {
-    if (s.len == 0) return error.NoInputWhileParsingNumber;
-    if (!isDigit(s[0])) return error.NoNumberWhileParsingNumber;
-    var parsed: CubeCount = charToDigit(s[0]);
-    var idx: usize = 1;
-    while (idx < s.len and isDigit(s[idx])) : (idx += 1) {
-        parsed *= 10;
-        parsed += charToDigit(s[idx]);
-    }
-    return .{
-        .value = parsed,
-        .consumed = idx,
-    };
-}
-
-test "parse number at start" {
-    const parsed = try parseNumberAtStart("25 red");
-    try expect(parsed.value == 25);
-    try expect(parsed.consumed == 2);
-}
-
-fn parseDraw(draw_text: []const u8) !ParseResult(CubeSet) {
+fn parseDraw(draw_text: []const u8) !utils.ParseResult(CubeSet) {
     var char_idx: usize = 0;
     var draw = CubeSet{};
     while (char_idx < draw_text.len and draw_text[char_idx] != ';') {
@@ -71,7 +41,7 @@ fn parseDraw(draw_text: []const u8) !ParseResult(CubeSet) {
         while (char_idx < draw_text.len and !isDigit(draw_text[char_idx])) : (char_idx += 1) {}
 
         const cube_string = draw_text[char_idx..];
-        const number_parsed = try parseNumberAtStart(cube_string);
+        const number_parsed = try utils.parseNumberAtStart(CubeCount, cube_string);
         char_idx += number_parsed.consumed;
         char_idx += 1; // Skip space after number
         switch (draw_text[char_idx]) {
