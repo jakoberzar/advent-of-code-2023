@@ -7,7 +7,7 @@ My solutions for Advent of Code 2023. This year I am learning Zig. I might also 
 | 1   | Trebuchet             | ✔️  |       |
 | 2   | Cube Game             | ✔️  |       |
 | 3   | Engine Schematic Grid | ✔️  |       |
-| 4   |                       |     |       |
+| 4   | Scratchcards          | ✔️  |       |
 | 5   |                       |     |       |
 | 6   |                       |     |       |
 | 7   |                       |     |       |
