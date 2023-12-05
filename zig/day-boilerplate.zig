@@ -8,6 +8,8 @@ const utils = @import("utils.zig");
 const day = "day-02";
 const simple = @embedFile("./inputs/" ++ day ++ "/simple.txt");
 const full = @embedFile("./inputs/" ++ day ++ "/full.txt");
+var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+const ga = arena.allocator();
 
 const CubeSet = struct {};
 
@@ -48,11 +50,8 @@ pub fn solveStar2(cube_sets: *ArrayList(CubeSet)) u64 {
 }
 
 pub fn main() !void {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit(); // We deallocate by finishing the program anyway :)
-    const allocator = arena.allocator();
-    var games = ArrayList(CubeSet).init(allocator);
-    try parseInput(allocator, full, &games);
+    var games = ArrayList(CubeSet).init(ga);
+    try parseInput(ga, full, &games);
 
     const result1 = solveStar1(&games);
     std.debug.print("Star 1 result is {}\n", .{result1});
@@ -60,42 +59,22 @@ pub fn main() !void {
     std.debug.print("Star 2 result is {}\n", .{result2});
 }
 
-test "star 1 simple" {
-    const allocator = std.testing.allocator;
-    var cube_sets = ArrayList(CubeSet).init(allocator);
-    defer {
-        for (cube_sets.items) |game| game.draws.deinit();
-        cube_sets.deinit();
-    }
-    try parseInput(allocator, simple, &cube_sets);
+test "simple" {
+    var cube_sets = ArrayList(CubeSet).init(ga);
+    try parseInput(ga, simple, &cube_sets);
 
-    const result = solveStar1(&cube_sets);
-    try expect(result == 8);
+    const result1 = solveStar1(&cube_sets);
+    try expect(result1 == 8);
+    // const result2 = solveStar2(&cube_sets);
+    // try expect(result2 == 2286);
 }
 
-test "star 1 full" {
-    const allocator = std.testing.allocator;
-    var cube_sets = ArrayList(CubeSet).init(allocator);
-    try parseInput(allocator, full, &cube_sets);
+test "full" {
+    var cube_sets = ArrayList(CubeSet).init(ga);
+    try parseInput(ga, full, &cube_sets);
 
-    const result = solveStar1(&cube_sets);
-    try expect(result == 2278);
-}
-
-test "star 2 simple" {
-    const allocator = std.testing.allocator;
-    var cube_sets = ArrayList(CubeSet).init(allocator);
-    try parseInput(allocator, simple, &cube_sets);
-
-    const result = solveStar2(&cube_sets);
-    try expect(result == 2286);
-}
-
-test "star 2 full" {
-    const allocator = std.testing.allocator;
-    var cube_sets = ArrayList(CubeSet).init(allocator);
-    try parseInput(allocator, full, &cube_sets);
-
-    const result = solveStar2(&cube_sets);
-    try expect(result == 67953);
+    const result1 = solveStar1(&cube_sets);
+    try expect(result1 == 2278);
+    // const result2 = solveStar2(&cube_sets);
+    // try expect(result2 == 67953);
 }
