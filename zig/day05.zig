@@ -61,8 +61,6 @@ fn parseInput(allocator: std.mem.Allocator, input: [:0]const u8, seed_list: *Arr
         const object = next_object.?;
         next_object = object_iterator.next();
 
-        std.debug.print("Object is {s}\n\n", .{object});
-
         if (seed_list.items.len == 0) {
             // First one; initialize the seeds
             var char_idx: usize = 7;
@@ -119,7 +117,7 @@ pub fn solveStar2(seed_list: *ArrayList(u64), map_list: *ArrayList(Map)) u64 {
         const report_freq: u32 = 1_000_000;
         var next_report: u32 = report_freq;
         var seed_counter: usize = 0;
-        std.debug.print("SEED PAIR {} of {}: len is {}\n", .{ seed_idx + 1, seed_list.items.len / 2, seed_len });
+        std.debug.print("SEED PAIR {} of {}: len is {}\n", .{ seed_idx / 2 + 1, seed_list.items.len / 2, seed_len });
         while (seed < seed_bound) : (seed += 1) {
             const location = findSeedLocation(seed, map_list);
             if (min == null) {
@@ -142,7 +140,6 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit(); // We deallocate by finishing the program anyway :)
     const allocator = arena.allocator();
-    // seed_list: *ArrayList(u32), map_list: *ArrayList(Map)
     var seed_list = ArrayList(u64).init(allocator);
     var map_list = ArrayList(Map).init(allocator);
     try parseInput(allocator, full, &seed_list, &map_list);
@@ -198,11 +195,17 @@ test "star 2 simple" {
     try expect(result == 46);
 }
 
-// test "star 2 full" {
-//     const allocator = std.testing.allocator;
-//     var cube_sets = ArrayList(CubeSet).init(allocator);
-//     try parseInput(allocator, full, &cube_sets);
+test "star 2 full" {
+    const allocator = std.testing.allocator;
+    var seed_list = ArrayList(u64).init(allocator);
+    var map_list = ArrayList(Map).init(allocator);
+    defer {
+        for (map_list.items) |item| item.ranges.deinit();
+        map_list.deinit();
+        seed_list.deinit();
+    }
+    try parseInput(allocator, full, &seed_list, &map_list);
 
-//     const result = solveStar2(&cube_sets);
-//     try expect(result == 67953);
-// }
+    const result = solveStar2(&seed_list, &map_list);
+    try expect(result == 1493866);
+}
