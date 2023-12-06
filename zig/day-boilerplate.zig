@@ -17,7 +17,7 @@ fn parseInput(allocator: std.mem.Allocator, input: [:0]const u8, out_game_list: 
     _ = allocator;
     _ = out_game_list;
 
-    const inputTrimmed = std.mem.trimRight(u8, input, &[_]u8{0});
+    const inputTrimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
     var lines_iterator = std.mem.splitScalar(u8, inputTrimmed, '\n');
     var next_line = lines_iterator.next();
     while (next_line != null) {
@@ -50,13 +50,13 @@ pub fn solveStar2(cube_sets: *ArrayList(CubeSet)) u64 {
 }
 
 pub fn main() !void {
-    var games = ArrayList(CubeSet).init(ga);
-    try parseInput(ga, full, &games);
+    var cube_sets = ArrayList(CubeSet).init(ga);
+    try parseInput(ga, full, &cube_sets);
 
-    const result1 = solveStar1(&games);
+    const result1 = solveStar1(&cube_sets);
     std.debug.print("Star 1 result is {}\n", .{result1});
-    const result2 = solveStar2(&games);
-    std.debug.print("Star 2 result is {}\n", .{result2});
+    // const result2 = solveStar2(&cube_sets);
+    // std.debug.print("Star 2 result is {}\n", .{result2});
 }
 
 test "simple" {
