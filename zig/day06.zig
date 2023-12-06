@@ -26,9 +26,7 @@ test "goes to first digit" {
     try expect(skipToNextDigit("Time:   34") == 8);
 }
 
-fn parseInput(allocator: std.mem.Allocator, input: [:0]const u8, out_record_list: *ArrayList(RaceRecord)) !void {
-    _ = allocator;
-
+fn parseInput(input: [:0]const u8, out_record_list: *ArrayList(RaceRecord)) !void {
     const inputTrimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
     var lines_iterator = std.mem.splitScalar(u8, inputTrimmed, '\n');
     const time_line = lines_iterator.next().?;
@@ -48,26 +46,48 @@ fn parseInput(allocator: std.mem.Allocator, input: [:0]const u8, out_record_list
     }
 }
 
-fn findCombinations(race_record: RaceRecord) u64 {
-    var time: u64 = 0;
-    var time_start: ?u64 = null;
-    while (time <= race_record.time) : (time += 1) {
-        const time_travel = race_record.time - time;
-        const speed = time;
-        const distance = time_travel * speed;
-        if (distance > race_record.distance and time_start == null) {
-            time_start = time;
-        } else if (distance <= race_record.distance and time_start != null) {
-            return time - time_start.?;
-        }
-    }
-    return race_record.time - time_start.?;
+fn timeOverRecordDistance(charging_time: u64, race_record: *const RaceRecord) i64 {
+    const time_travel = race_record.time - charging_time;
+    const speed = charging_time;
+    const distance = time_travel * speed;
+    return @as(i64, @intCast(distance)) - @as(i64, @intCast(race_record.distance));
+}
+
+test "time over record distance" {
+    const race_record = RaceRecord{ .time = 7, .distance = 9 };
+    try expect(timeOverRecordDistance(0, &race_record) == -9);
+    try expect(timeOverRecordDistance(1, &race_record) == -3);
+    try expect(timeOverRecordDistance(2, &race_record) == 1);
+    try expect(timeOverRecordDistance(6, &race_record) == -3);
+}
+
+fn calculateCombinations(race_record: *const RaceRecord) u64 {
+    // Use square equation to calculate the bounds
+    const a: f64 = -1.0;
+    const b = @as(f64, @floatFromInt(race_record.time));
+    const c = -@as(f64, @floatFromInt(race_record.distance));
+    const D = (b * b) - 4.0 * a * c;
+    const D_sqrt = std.math.sqrt(D);
+    const x1 = (-b + D_sqrt) / (2.0 * a);
+    const x2 = (-b - D_sqrt) / (2.0 * a);
+    // std.debug.print("x1 is {} x2 is {}, D is {}\n", .{ x1, x2, D });
+    var lower_bound_time: u64 = @intFromFloat(x1);
+    while (timeOverRecordDistance(lower_bound_time, race_record) <= 0) : (lower_bound_time += 1) {}
+    var upper_bound_time: u64 = @intFromFloat(x2);
+    while (timeOverRecordDistance(upper_bound_time, race_record) > 0) : (upper_bound_time += 1) {}
+    return upper_bound_time - lower_bound_time;
+}
+test "calculate combinations" {
+    const race_record = RaceRecord{ .time = 7, .distance = 9 };
+    try expect(calculateCombinations(&race_record) == 4);
+    const race_record2 = RaceRecord{ .time = 30, .distance = 200 };
+    try expect(calculateCombinations(&race_record2) == 9);
 }
 
 pub fn solveStar1(race_records: *ArrayList(RaceRecord)) u64 {
     var product: u64 = 1;
-    for (race_records.items) |race_record| {
-        const combs = findCombinations(race_record);
+    for (race_records.items) |*race_record| {
+        const combs = calculateCombinations(race_record);
         product *= combs;
     }
     return product;
@@ -87,7 +107,7 @@ test "finding upper base 10" {
 
 fn combineRecords(race_records: *ArrayList(RaceRecord)) RaceRecord {
     var new_record = RaceRecord{ .time = 0, .distance = 0 };
-    for (race_records.items) |race_record| {
+    for (race_records.items) |*race_record| {
         new_record.time *= findNumberUpperBase10(race_record.time);
         new_record.distance *= findNumberUpperBase10(race_record.distance);
         new_record.time += race_record.time;
@@ -98,12 +118,12 @@ fn combineRecords(race_records: *ArrayList(RaceRecord)) RaceRecord {
 
 pub fn solveStar2(race_records: *ArrayList(RaceRecord)) u64 {
     const combined = combineRecords(race_records);
-    return findCombinations(combined);
+    return calculateCombinations(&combined);
 }
 
 pub fn main() !void {
     var race_records = ArrayList(RaceRecord).init(ga);
-    try parseInput(ga, full, &race_records);
+    try parseInput(full, &race_records);
 
     const result1 = solveStar1(&race_records);
     std.debug.print("Star 1 result is {}\n", .{result1});
@@ -113,7 +133,7 @@ pub fn main() !void {
 
 test "simple" {
     var race_records = ArrayList(RaceRecord).init(ga);
-    try parseInput(ga, simple, &race_records);
+    try parseInput(simple, &race_records);
 
     const result1 = solveStar1(&race_records);
     try expect(result1 == 288);
@@ -123,7 +143,7 @@ test "simple" {
 
 test "full" {
     var race_records = ArrayList(RaceRecord).init(ga);
-    try parseInput(ga, full, &race_records);
+    try parseInput(full, &race_records);
 
     const result1 = solveStar1(&race_records);
     try expect(result1 == 512295);
