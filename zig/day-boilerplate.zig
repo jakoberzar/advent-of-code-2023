@@ -69,12 +69,12 @@ test "simple" {
     // try expect(result2 == 2286);
 }
 
-test "full" {
-    var cube_sets = ArrayList(CubeSet).init(ga);
-    try parseInput(ga, full, &cube_sets);
+// test "full" {
+//     var cube_sets = ArrayList(CubeSet).init(ga);
+//     try parseInput(ga, full, &cube_sets);
 
-    const result1 = solveStar1(&cube_sets);
-    try expect(result1 == 2278);
-    // const result2 = solveStar2(&cube_sets);
-    // try expect(result2 == 67953);
-}
+//     const result1 = solveStar1(&cube_sets);
+//     try expect(result1 == 2278);
+//     // const result2 = solveStar2(&cube_sets);
+//     // try expect(result2 == 67953);
+// }

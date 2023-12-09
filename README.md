@@ -10,7 +10,7 @@ My solutions for Advent of Code 2023. This year I am learning Zig. I might also 
 | 4   | Scratchcards          | ✔️  |       |
 | 5   | Almanac               | ✔️  |       |
 | 6   | Boat Racing           | ✔️  |       |
-| 7   |                       |     |       |
+| 7   | Poker                 | ✔️  |       |
 | 8   | Map Cycles            | ✔️  |       |
 | 9   | Sequences             | ✔️  |       |
 | 10  |                       |     |       |
