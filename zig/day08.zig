@@ -182,33 +182,34 @@ const NodeState = struct {
         self.instr_len = instr_len;
     }
     fn goNext(self: *NodeState, next_instruction: u8) !void {
+        if (self.cycle != null) {
+            // This has already been solved.
+            return;
+        }
+
         const node_entry = &self.nodes.items[self.current_node.pair.node];
         const cache_idx = self.current_node.pair.cacheIdxValue();
         // std.debug.print("Node starting {}, idx is {}\n", .{ self.starting_node.node, cache_idx });
-        if (self.cycle == null) {
-            if (self.visited.items[cache_idx] == null) {
-                // Add to cache
-                self.visited.items[cache_idx] = self.current_node.moves;
-                if (node_entry.name[2] == 'Z') {
-                    // Winning node
-                    try self.wins.append(self.current_node);
-                }
-            } else {
-                // Deja vu! I have seen this node before
-                // Detect the cycle.
-                const cycle_started = self.visited.items[cache_idx].?;
-                self.cycle = CycleInfo{
-                    .cycle_start_node = self.current_node.pair,
-                    .cycle_started = cycle_started,
-                    .cycle_len = self.current_node.moves - cycle_started,
-                };
-                std.debug.print("Deja vu! Cycle ", .{});
-                self.cycle.?.printLn();
+        if (self.visited.items[cache_idx] == null) {
+            // Add to cache
+            self.visited.items[cache_idx] = self.current_node.moves;
+            if (node_entry.name[2] == 'Z') {
+                // Winning node
+                try self.wins.append(self.current_node);
             }
         } else {
-            // Already solved
-            return;
+            // Deja vu! I have seen this node before
+            // Detect the cycle.
+            const cycle_started = self.visited.items[cache_idx].?;
+            self.cycle = CycleInfo{
+                .cycle_start_node = self.current_node.pair,
+                .cycle_started = cycle_started,
+                .cycle_len = self.current_node.moves - cycle_started,
+            };
+            std.debug.print("Deja vu! Cycle ", .{});
+            self.cycle.?.printLn();
         }
+
         // Calculate next
         const last_node = self.current_node;
         // std.debug.print("Current ", .{});
