@@ -12,7 +12,7 @@ My solutions for Advent of Code 2023. This year I am learning Zig. I might also 
 | 6   | Boat Racing           | ✔️  |       |
 | 7   |                       |     |       |
 | 8   | Map Cycles            | ✔️  |       |
-| 9   |                       |     |       |
+| 9   | Sequences             | ✔️  |       |
 | 10  |                       |     |       |
 | 11  |                       |     |       |
 | 12  |                       |     |       |
