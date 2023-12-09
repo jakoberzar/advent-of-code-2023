@@ -152,7 +152,7 @@ const CycleInfo = struct {
 };
 const NodeState = struct {
     current_node: NodeMoves,
-    visited: ArrayList(?MoveSize),
+    visited: *ArrayList(?MoveSize),
     wins: ArrayList(NodeMoves),
     cycle: ?CycleInfo,
     starting_node: NodeInstrPair,
@@ -166,6 +166,7 @@ const NodeState = struct {
         node: NodeRefType,
         nodes: *const ArrayList(Node),
         node_map: *const std.StringHashMap(NodeRefType),
+        visited: *ArrayList(?MoveSize),
         instr_len: usize,
     ) !void {
         self.wins = ArrayList(NodeMoves).init(ga);
@@ -175,10 +176,9 @@ const NodeState = struct {
         self.current_node.pair.node = node;
         self.current_node.pair.nodes_len = @intCast(nodes.items.len);
         self.starting_node = self.current_node.pair;
-        self.visited = ArrayList(?MoveSize).init(ga);
-        try self.visited.appendNTimes(null, nodes.items.len * instr_len);
         self.nodes = nodes;
         self.node_map = node_map;
+        self.visited = visited;
         self.instr_len = instr_len;
     }
     fn goNext(self: *NodeState, next_instruction: u8) !void {
@@ -205,6 +205,9 @@ const NodeState = struct {
                 std.debug.print("Deja vu! Cycle ", .{});
                 self.cycle.?.printLn();
             }
+        } else {
+            // Already solved
+            return;
         }
         // Calculate next
         const last_node = self.current_node;
@@ -228,49 +231,36 @@ const NodeState = struct {
 };
 
 pub fn solveStar2States(nodes: *ArrayList(Node), instructions: []const u8, node_map: *std.StringHashMap(NodeRefType)) MoveSize {
-    var moves: MoveSize = 0;
     var current_instruction: usize = 0;
     var starting_nodes = ArrayList(NodeRefType).init(ga);
     determineStartingNodes(node_map, &starting_nodes) catch unreachable;
     var states = ArrayList(NodeState).init(ga);
+    var visited = ArrayList(?MoveSize).init(ga);
+    visited.appendNTimes(null, nodes.items.len * instructions.len) catch unreachable;
     for (starting_nodes.items) |node_ref| {
         var new_node = states.addOne() catch unreachable;
-        new_node.init(node_ref, nodes, node_map, instructions.len) catch unreachable;
+        new_node.init(node_ref, nodes, node_map, &visited, instructions.len) catch unreachable;
     }
 
-    while (true) : (moves += 1) {
-        const instruction = instructions[current_instruction];
-        const next_instruction = (current_instruction + 1) % instructions.len;
-
-        const all_good = true;
-        _ = all_good;
-        var all_found = true;
-        for (states.items, 0..) |*state, idx| {
-            _ = idx;
-
+    for (states.items) |*state| {
+        var moves: MoveSize = 0;
+        while (state.cycle == null) : (moves += 1) {
+            const instruction = instructions[current_instruction];
             state.goNext(instruction) catch unreachable;
-            if (state.cycle == null) {
-                all_found = false;
-            }
+            current_instruction = (current_instruction + 1) % instructions.len;
         }
-        if (all_found) {
-            std.debug.print("Cycles to all were found in move {}!\n", .{moves});
-            var lcm = utils.lcm(states.items[0].cycle.?.cycle_len, states.items[1].cycle.?.cycle_len);
-            for (states.items, 0..) |*state, idx| {
-                std.debug.print("State {}:", .{idx});
-                state.cycle.?.printLn();
-                for (state.wins.items) |win| {
-                    std.debug.print("Possible win ", .{});
-                    win.printLn();
-                }
-                lcm = utils.lcm(lcm, state.cycle.?.cycle_len);
-            }
-            return @intCast(lcm);
-        }
-
-        current_instruction = next_instruction;
     }
-    return moves;
+    var lcm = utils.lcm(states.items[0].cycle.?.cycle_len, states.items[1].cycle.?.cycle_len);
+    for (states.items, 0..) |*state, idx| {
+        std.debug.print("State {}:", .{idx});
+        state.cycle.?.printLn();
+        for (state.wins.items) |win| {
+            std.debug.print("Possible win ", .{});
+            win.printLn();
+        }
+        lcm = utils.lcm(lcm, state.cycle.?.cycle_len);
+    }
+    return @intCast(lcm);
 }
 
 pub fn main() !void {
