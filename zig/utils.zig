@@ -36,6 +36,23 @@ test "parse number at start grid" {
     try expect(parsed.consumed == 3);
 }
 
+// Returns the lowest common multiple (lcm) of two unsigned numbers.
+pub fn lcm(a: anytype, b: anytype) @TypeOf(a, b) {
+    comptime switch (@typeInfo(@TypeOf(a, b))) {
+        .Int => |int| std.debug.assert(int.signedness == .unsigned),
+        .ComptimeInt => {
+            std.debug.assert(a >= 0);
+            std.debug.assert(b >= 0);
+        },
+        else => unreachable,
+    };
+    return a * b / std.math.gcd(a, b);
+}
+
+test "lcm" {
+    try expect(lcm(15, 20) == 60);
+}
+
 fn charToDigit(char: u8) u8 {
     return char - '0';
 }
