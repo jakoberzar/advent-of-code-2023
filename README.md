@@ -13,7 +13,7 @@ My solutions for Advent of Code 2023. This year I am learning Zig. I might also 
 | 7   | Poker                 | ✔️  |       |
 | 8   | Map Cycles            | ✔️  |       |
 | 9   | Sequences             | ✔️  |       |
-| 10  |                       |     |       |
+| 10  | Pipes                 | ✔️  |       |
 | 11  |                       |     |       |
 | 12  |                       |     |       |
 | 13  |                       |     |       |
