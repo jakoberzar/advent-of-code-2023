@@ -14,8 +14,8 @@ const ga = arena.allocator();
 const NumSeq = ArrayList(i32);
 
 fn parseInput(allocator: std.mem.Allocator, input: [:0]const u8, out_sequences: *ArrayList(NumSeq)) !void {
-    const inputTrimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
-    var lines_iterator = std.mem.splitScalar(u8, inputTrimmed, '\n');
+    const input_trimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
+    var lines_iterator = std.mem.splitScalar(u8, input_trimmed, '\n');
     var next_line = lines_iterator.next();
     while (next_line != null) {
         const line = next_line.?;

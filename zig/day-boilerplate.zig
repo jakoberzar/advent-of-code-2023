@@ -5,7 +5,7 @@ const ArrayList = std.ArrayList;
 
 const utils = @import("utils.zig");
 
-const day = "day-02";
+const day = "day-CHANGEME";
 const simple = @embedFile("./inputs/" ++ day ++ "/simple.txt");
 const full = @embedFile("./inputs/" ++ day ++ "/full.txt");
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -17,8 +17,8 @@ fn parseInput(allocator: std.mem.Allocator, input: [:0]const u8, out_game_list: 
     _ = allocator;
     _ = out_game_list;
 
-    const inputTrimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
-    var lines_iterator = std.mem.splitScalar(u8, inputTrimmed, '\n');
+    const input_trimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
+    var lines_iterator = std.mem.splitScalar(u8, input_trimmed, '\n');
     var next_line = lines_iterator.next();
     while (next_line != null) {
         const line = next_line.?;

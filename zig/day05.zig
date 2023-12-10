@@ -54,8 +54,8 @@ fn parseMap(allocator: std.mem.Allocator, input: []const u8, out_map: *Map) !voi
 }
 
 fn parseInput(allocator: std.mem.Allocator, input: [:0]const u8, seed_list: *ArrayList(u64), map_list: *ArrayList(Map)) !void {
-    const inputTrimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
-    var object_iterator = std.mem.splitSequence(u8, inputTrimmed, "\n\n");
+    const input_trimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
+    var object_iterator = std.mem.splitSequence(u8, input_trimmed, "\n\n");
     var next_object = object_iterator.next();
     while (next_object != null) {
         const object = next_object.?;

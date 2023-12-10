@@ -34,8 +34,8 @@ fn skipToNextSpace(input: []const u8) usize {
 }
 
 fn parseInput(input: [:0]const u8, out_node_list: *ArrayList(Node), out_node_map: *std.StringHashMap(NodeRefType)) ![]const u8 {
-    const inputTrimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
-    var lines_iterator = std.mem.splitScalar(u8, inputTrimmed, '\n');
+    const input_trimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
+    var lines_iterator = std.mem.splitScalar(u8, input_trimmed, '\n');
     const instructions = lines_iterator.next().?;
     _ = lines_iterator.next().?; // Skip empty line
     var lines_iterator_copy = lines_iterator;

@@ -28,8 +28,8 @@ fn addNumbersToStore(input: []const u8, out_number_store: *ArrayList(u8)) !void 
 fn parseInput(input: [:0]const u8, out_card_list: *ArrayList(Card), out_number_store: *ArrayList(u8)) !void {
     var amount_winning: ?usize = null;
     var amount_picked: ?usize = null;
-    const inputTrimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
-    var lines_iterator = std.mem.splitScalar(u8, inputTrimmed, '\n');
+    const input_trimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
+    var lines_iterator = std.mem.splitScalar(u8, input_trimmed, '\n');
     var next_line = lines_iterator.next();
     while (next_line != null) {
         const line = next_line.?;

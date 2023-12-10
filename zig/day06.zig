@@ -27,8 +27,8 @@ test "goes to first digit" {
 }
 
 fn parseInput(input: [:0]const u8, out_record_list: *ArrayList(RaceRecord)) !void {
-    const inputTrimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
-    var lines_iterator = std.mem.splitScalar(u8, inputTrimmed, '\n');
+    const input_trimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
+    var lines_iterator = std.mem.splitScalar(u8, input_trimmed, '\n');
     const time_line = lines_iterator.next().?;
     const distance_line = lines_iterator.next().?;
     var char_idx_time: usize = skipToNextDigit(time_line);
