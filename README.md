@@ -14,7 +14,7 @@ My solutions for Advent of Code 2023. This year I am learning Zig. I might also 
 | 8   | Map Cycles            | ✔️  |       |
 | 9   | Sequences             | ✔️  |       |
 | 10  | Pipes                 | ✔️  |       |
-| 11  |                       |     |       |
+| 11  | Galaxies              | ✔️  |       |
 | 12  |                       |     |       |
 | 13  |                       |     |       |
 | 14  |                       |     |       |
