@@ -15,7 +15,7 @@ My solutions for Advent of Code 2023. This year I am learning Zig. I might also 
 | 9   | Sequences             | ✔️  |       |
 | 10  | Pipes                 | ✔️  |       |
 | 11  | Galaxies              | ✔️  |       |
-| 12  |                       |     |       |
+| 12  | Hot Springs           | ✔️  |       |
 | 13  |                       |     |       |
 | 14  |                       |     |       |
 | 15  |                       |     |       |

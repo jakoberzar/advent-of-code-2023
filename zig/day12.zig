@@ -14,6 +14,7 @@ const ga = arena.allocator();
 const GroupSize = u8;
 const RecordLen = u16;
 const Row = struct {
+    id: u16,
     record: []u8,
     groups: ArrayList(GroupSize),
     questions: ArrayList(RecordLen),
@@ -51,14 +52,17 @@ fn parseInput(allocator: std.mem.Allocator, input: [:0]const u8, out_row_list: *
     const input_trimmed = std.mem.trimRight(u8, input, &[_]u8{ 0, '\n' });
     var lines_iterator = std.mem.splitScalar(u8, input_trimmed, '\n');
     var next_line = lines_iterator.next();
+    var row_idx: u16 = 1;
     while (next_line != null) {
         const line = next_line.?;
         next_line = lines_iterator.next();
 
         var split_space_iterator = std.mem.splitScalar(u8, line, ' ');
+        const new_row = try out_row_list.addOne();
+        // Id
+        new_row.id = row_idx;
         // Record
         const record_string = split_space_iterator.next().?;
-        const new_row = try out_row_list.addOne();
         new_row.record = try allocator.alloc(u8, record_string.len);
         std.mem.copyForwards(u8, new_row.record, record_string);
         // Questions
@@ -75,6 +79,7 @@ fn parseInput(allocator: std.mem.Allocator, input: [:0]const u8, out_row_list: *
             char_idx += parsed.consumed + 1;
             try new_row.groups.append(parsed.value);
         }
+        row_idx += 1;
     }
 }
 
@@ -136,13 +141,6 @@ fn checkFullRow(row: *const Row, last_result: *const PartialResult) bool {
     return true;
 }
 
-const CheckPartialResult = enum {
-    full_ok,
-    full_not_ok,
-    for_now_ok,
-    never_ok,
-};
-
 const PartialResult = struct {
     status: bool,
     next_start: RecordLen,
@@ -202,13 +200,6 @@ fn checkPartial(row: *const Row, last_result: *const PartialResult) PartialResul
         } else if (value == '?') {
             result.status = true;
             return result;
-            // if (currently_in_group) {
-            //     // Assess how many we need to continue
-            //     // TODO: Return this value if successfull
-            //     const full_amount = row.groups.items[group_idx];
-            //     _ = full_amount;
-
-            // } else {}
         }
     }
     // Imagine there's one more field last to correct the state
@@ -235,19 +226,31 @@ fn checkPartial(row: *const Row, last_result: *const PartialResult) PartialResul
     return result;
 }
 
-fn solveAtIndex(row: *Row, question_idx: RecordLen, last_result: *const PartialResult) u64 {
+const CacheType = ArrayList(?u64);
+fn getCacheIdx(row: *Row, question_idx: RecordLen, last_result: *const PartialResult) usize {
+    return question_idx * (row.groups.items.len + 1) + last_result.next_group;
+}
+
+fn solveAtIndex(row: *Row, cache: *CacheType, question_idx: RecordLen, last_result: *const PartialResult) u64 {
     const question_pos = row.questions.items[question_idx];
     const is_final = question_idx == row.questions.items.len - 1;
-    const report_freq = 45;
-    if (row.questions.items.len > report_freq and question_idx < row.questions.items.len - report_freq) {
-        std.debug.print("Idx {} - row {s}\n", .{ question_idx, row.record });
-    }
+    // const report_freq = 45;
+    // if (row.questions.items.len > report_freq and question_idx < row.questions.items.len - report_freq) {
+    //     std.debug.print("[{}]:{} - {s}\n", .{ row.id, question_idx, row.record });
+    // }
 
     if (last_result.groups_need == 0) {
         // We only need to fill the rest with dots.
         // This means that there is only one option remaining, we just need to check if it works.
         if (checkFullRow(row, last_result)) {
             return 1;
+        }
+    }
+    const enable_cache = question_pos > 0 and row.record[question_pos - 1] == '.';
+    if (enable_cache) {
+        const cache_idx = getCacheIdx(row, question_idx, last_result);
+        if (cache.items[cache_idx]) |cached| {
+            return cached;
         }
     }
 
@@ -257,14 +260,11 @@ fn solveAtIndex(row: *Row, question_idx: RecordLen, last_result: *const PartialR
     if (is_final) {
         if (checkFullRow(row, last_result)) {
             solution_count += 1;
-            // std.debug.print("- {s} was a solution\n", .{row.record});
-        } else {
-            // std.debug.print("- {s} was not solution\n", .{row.record});
         }
     } else {
         const partial_check = checkPartial(row, last_result);
         if (partial_check.status) {
-            solution_count += solveAtIndex(row, question_idx + 1, &partial_check);
+            solution_count += solveAtIndex(row, cache, question_idx + 1, &partial_check);
         }
     }
     // Try operational
@@ -272,19 +272,22 @@ fn solveAtIndex(row: *Row, question_idx: RecordLen, last_result: *const PartialR
     if (is_final) {
         if (checkFullRow(row, last_result)) {
             solution_count += 1;
-            // std.debug.print("- {s} was a solution\n", .{row.record});
-        } else {
-            // std.debug.print("- {s} was not solution\n", .{row.record});
         }
     } else {
         const partial_check = checkPartial(row, last_result);
         if (partial_check.status) {
-            solution_count += solveAtIndex(row, question_idx + 1, &partial_check);
+            solution_count += solveAtIndex(row, cache, question_idx + 1, &partial_check);
         }
     }
 
     // Revert back
     row.record[question_pos] = '?';
+
+    // Store to cache
+    if (enable_cache) {
+        const cache_idx = getCacheIdx(row, question_idx, last_result);
+        cache.items[cache_idx] = solution_count;
+    }
     return solution_count;
 }
 
@@ -303,7 +306,16 @@ fn solveRow(row: *Row) u64 {
         .groups_need = groups_need,
     };
 
-    return solveAtIndex(row, 0, &partial_result);
+    // Init cache
+    const cache_size = row.questions.items.len * (row.groups.items.len + 1);
+    // Using arena here instead of std.heap.page_allocator decreases time with no observable memory increase.
+    // from 59.0 ms ±  10.3 ms    [User: 31.3 ms, System: 25.9 ms]
+    // to   34.9 ms ±  11.5 ms    [User: 33.6 ms, System: 0.9 ms]
+    var cache = CacheType.init(ga);
+    defer cache.deinit();
+    cache.appendNTimes(null, cache_size) catch unreachable;
+
+    return solveAtIndex(row, &cache, 0, &partial_result);
 }
 
 pub fn solveStar1(rows: *ArrayList(Row)) u64 {
@@ -311,7 +323,7 @@ pub fn solveStar1(rows: *ArrayList(Row)) u64 {
     for (rows.items) |*row| {
         const solutions = solveRow(row);
         sum += solutions;
-        std.debug.print("{s} - {} arrangements\n", .{ row.record, solutions });
+        // std.debug.print("{s} - {} arrangements\n", .{ row.record, solutions });
     }
     return sum;
 }
@@ -350,11 +362,13 @@ fn expandRow(row: *Row) !void {
 pub fn solveStar2(rows: *ArrayList(Row)) u64 {
     var sum: u64 = 0;
     for (rows.items, 1..) |*row, line| {
+        _ = line;
+
         expandRow(row) catch unreachable;
-        std.debug.print("-- LINE {}:\n{s}\n--\n", .{ line, row });
+        // std.debug.print("-- LINE {}:\n{s}\n--\n", .{ line, row });
         const solutions = solveRow(row);
         sum += solutions;
-        std.debug.print("{s} - {} arrangements\n", .{ row.record, solutions });
+        // std.debug.print("{s} - {} arrangements\n", .{ row.record, solutions });
     }
     return sum;
 }
