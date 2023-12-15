@@ -18,7 +18,7 @@ My solutions for Advent of Code 2023. This year I am learning Zig. I might also 
 | 12  | Hot Springs           | ✔️  |       |
 | 13  |                       |     |       |
 | 14  |                       |     |       |
-| 15  |                       |     |       |
+| 15  | Hashmap               | ✔️  |       |
 | 16  |                       |     |       |
 | 17  |                       |     |       |
 | 18  |                       |     |       |
